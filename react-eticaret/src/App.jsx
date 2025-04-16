@@ -3,53 +3,76 @@ import React, { useEffect, useState } from "react";
 const App = () => {
   const [items, setItems] = useState([]);
   const [translatedItems, setTranslatedItems] = useState([]);
-  const [exchange, setExchange] = useState(null);
+  const [fiyat, setFiyat] = useState(null);
 
-
+  // API den ürünler çekilir
   useEffect(() => {
     const API_URL = "https://fakestoreapi.com/products";
     fetch(API_URL)
       .then((res) => res.json())
-      .then((veri) => setItems(veri));
+      .then((data) => setItems(data));
   }, []);
 
+
+  //PRICE API
   useEffect(() => {
-    if(items.length===0) return;
+    const PRICE_API = "https://api.exchangerate-api.com/v4/latest/USD";
+    fetch(PRICE_API)
+      .then((res) => res.json())
+      .then((data) => setFiyat(data.rates.TRY));
+  }, []);
+
+
+  //MYMEMORY API
+  useEffect(() => {
+    if (items.length === 0) return;
+
+    //metin çevirisi için API kullanılarak fonksiyon tanımlanır.
     const translateText = async (text) => {
-      const response = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-          text
-        )}&langpair=en|tr`
-      );
-      const data = await response.json();
-      return data.responseData.translatedText;
+      try {
+        const response = await fetch(
+          `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+            text
+          )}&langpair=en|tr`
+        );
+        const data = await response.json();
+        return data.responseData.translatedText;
+        
+      } catch (error) {
+        console.error("Çeviride hata oluştu... ", error);
+        
+      }
+      
     };
 
-    const translateProduct=async()=>{
-      const translated=await Promise.all(
-      items.map(async (item)=>{
-        const translatedTitle=await translateText(item.title);
-        const translatedCategory=await translateText(item.category);
-        return {
-          ...item,
-          translatedTitle,
-          translatedCategory,
-        };
-      })
-    );
+    //metinlerin çevrilmesi
+    const translateProduct = async () => {
+      //map içinde await varsa promise.all() kullan
+      const translated = await Promise.all(
+        items.map(async (item) => {
+          const translatedTitle = await translateText(item.title);
+          const translatedCategory = await translateText(item.category);
+          return {
+            //her ürüne translatedTitle ve translatedCategory alanları eklenir.
+            ...item, // .. spread operator
+            translatedTitle,
+            translatedCategory,
+          };
+        })
+      );
+
+      //çevrilen metinler translatedItem a kaydedilir.
       setTranslatedItems(translated);
     };
 
     translateProduct();
-    
-  }, [items])
-  
+  }, [items]);
 
   return (
     <div>
       <h1>Ürün Listesi</h1>
       {translatedItems.map((item) => (
-        <Card item={item} />
+        <Card item={item} fiyat={fiyat} style={{border:"1px solid black"} } />
       ))}
     </div>
   );
@@ -57,6 +80,7 @@ const App = () => {
 
 const Card = (props) => {
   const item = props.item;
+  const fiyat =props.fiyat;
 
   return (
     <div>
@@ -65,7 +89,7 @@ const Card = (props) => {
           <h2>{item.translatedTitle}</h2>
 
           <p>Kategori: {item.translatedCategory} </p>
-          <p>Fiyat: ${item.price}</p>
+          <p>Fiyat: {Math.round(item.price*(fiyat))+" ₺"}</p>
           <img src={item.image} width={200} height={200} />
         </li>
       </ul>
