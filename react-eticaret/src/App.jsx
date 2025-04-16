@@ -9,19 +9,28 @@ const App = () => {
       .then((data) => setItems(data));
   }, []);
 
-  return <div>App</div>;
+  return (
+    <div>
+      <h1>Ürün Listesi</h1>
+      {items.map((item)=>
+      <Card item={item}/>
+      )}
+    </div>
+
+  );
 };
 
 const Card = (props) => {
   const item = props.item;
   return (
     <div>
+      
       <ul>
         <li>
           <h2>{item.title}</h2>
-          <h3>Kategori: {item.category}</h3>
-          <h3>Fiyat: {item.price}</h3>
-          <img src={item.image} />
+          <p>Kategori: {item.category}</p>
+          <p>Fiyat: {item.price}</p>
+          <img src={item.image} width={200} height={200} />
         </li>
       </ul>
     </div>
