@@ -89,7 +89,7 @@ const Card = (props) => {
           <h2>{item.translatedTitle}</h2>
 
           <p>Kategori: {item.translatedCategory} </p>
-          <p>Fiyat: {Math.round(item.price*(fiyat))+" ₺"}</p>
+          <p>Fiyat: {(item.price*(fiyat)).toFixed(2)+" TL"}</p>
           <img src={item.image} width={200} height={200} />
         </li>
       </ul>
